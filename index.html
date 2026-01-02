@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le haluwa</title>
+
+<style>
+body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(circle at top,#1f2933,#0b0f14);
+    font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+}
+.calculator-container{
+    width:100%;
+    max-width:400px;
+    background:#0f1720;
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 25px 60px rgba(0,0,0,.6);
+}
+.calculator-header{
+    background:linear-gradient(135deg,#d4af37,#f1c86d);
+    color:#111;
+    text-align:center;
+    padding:16px;
+    font-weight:600;
+}
+.display{
+    padding:24px;
+    background:#0b1118;
+    text-align:right;
+}
+.previous-operation{color:#9ca3af;font-size:16px;}
+.current-operation{font-size:42px;font-weight:700;color:#fff;}
+.buttons{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1px;
+    background:#111827;
+}
+button{
+    border:none;
+    padding:22px;
+    font-size:20px;
+    background:#1f2933;
+    color:#e5e7eb;
+    cursor:pointer;
+}
+button:hover{background:#273449;}
+.operator{
+    background:linear-gradient(135deg,#cfa93e,#f1c86d);
+    color:#111;
+    font-weight:600;
+}
+.equals{
+    grid-column:span 2;
+    background:linear-gradient(135deg,#f1c86d,#d4af37);
+    color:#111;
+    font-weight:700;
+}
+.clear{background:#7c2d12;}
+.sound-control{
+    padding:14px;
+    text-align:center;
+    background:#0f1720;
+}
+.sound-btn{
+    background:#1f2933;
+    border:1px solid #f1c86d66;
+    color:#f1c86d;
+    padding:10px 18px;
+    border-radius:40px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="calculator-container">
+    <div class="calculator-header">Le haluwa</div>
+
+    <div class="display">
+        <div class="previous-operation" id="previous-operation"></div>
+        <div class="current-operation" id="current-operation">0</div>
+    </div>
+
+    <div class="buttons">
+        <button class="clear" onclick="clearAll()">C</button>
+        <button class="clear" onclick="deleteLast()">⌫</button>
+        <button class="operator" onclick="appendOperator('/')">÷</button>
+        <button class="operator" onclick="appendOperator('*')">×</button>
+
+        <button onclick="appendNumber('7')">7</button>
+        <button onclick="appendNumber('8')">8</button>
+        <button onclick="appendNumber('9')">9</button>
+        <button class="operator" onclick="appendOperator('-')">-</button>
+
+        <button onclick="appendNumber('4')">4</button>
+        <button onclick="appendNumber('5')">5</button>
+        <button onclick="appendNumber('6')">6</button>
+        <button class="operator" onclick="appendOperator('+')">+</button>
+
+        <button onclick="appendNumber('1')">1</button>
+        <button onclick="appendNumber('2')">2</button>
+        <button onclick="appendNumber('3')">3</button>
+        <button class="equals" onclick="calculateWithSound()">=</button>
+
+        <button onclick="appendNumber('0')" style="grid-column:span 2;">0</button>
+        <button onclick="appendDecimal()">.</button>
+    </div>
+
+    <div class="sound-control">
+        <button class="sound-btn" onclick="stopSound()">Sound Off</button>
+    </div>
+</div>
+
+<!-- AUDIO -->
+<audio id="equalsSound" preload="auto">
+    <source src="https://www.myinstants.com/media/sounds/technoloyia-technologia-tecnologia.mp3">
+</audio>
+
+<script>
+let currentOperation='0';
+let previousOperation='';
+let operator=null;
+let shouldReset=false;
+
+const currEl=document.getElementById('current-operation');
+const prevEl=document.getElementById('previous-operation');
+const sound=document.getElementById('equalsSound');
+
+function update(){
+    currEl.textContent=currentOperation;
+    prevEl.textContent=previousOperation;
+}
+
+function appendNumber(n){
+    if(currentOperation==='0'||shouldReset){
+        currentOperation=n;
+        shouldReset=false;
+    }else currentOperation+=n;
+    update();
+}
+
+function appendDecimal(){
+    if(!currentOperation.includes('.')) currentOperation+='.';
+    update();
+}
+
+function appendOperator(op){
+    if(operator&&!shouldReset) calculate();
+    operator=op;
+    previousOperation=currentOperation+' '+symbol(op);
+    shouldReset=true;
+    update();
+}
+
+function symbol(op){
+    return op==='*'?'×':op==='/'?'÷':op;
+}
+
+function calculateWithSound(){
+    playSoundOnce();
+    calculate();
+}
+
+function calculate(){
+    if(!operator||shouldReset) return;
+    let a=parseFloat(previousOperation);
+    let b=parseFloat(currentOperation);
+    if(operator==='/'&&b===0){
+        alert('শূন্য দিয়ে ভাগ করা যাবে না');
+        clearAll(); return;
+    }
+    let r=eval(a+operator+b);
+    currentOperation=r.toString();
+    previousOperation='';
+    operator=null;
+    shouldReset=true;
+    update();
+}
+
+/* 🔊 SOUND — one click = one play */
+function playSoundOnce(){
+    sound.pause();
+    sound.currentTime=0;
+    sound.play();
+}
+
+function stopSound(){
+    sound.pause();
+    sound.currentTime=0;
+}
+
+function clearAll(){
+    currentOperation='0';
+    previousOperation='';
+    operator=null;
+    shouldReset=false;
+    update();
+}
+
+function deleteLast(){
+    currentOperation=currentOperation.length>1
+        ?currentOperation.slice(0,-1)
+        :'0';
+    update();
+}
+
+update();
+</script>
+
+</body>
+</html>
